@@ -59,8 +59,8 @@ quadDecoder_.CounterChanged += decoderEvent =>
 // Reset and start polling
 quadDecoder_.ResetCounter();
 quadDecoder_.Start();
-
-📡 How It Works
+```
+## 📡 How It Works
 The decoder operates on a fixed 5 ms polling interval.
 Each poll performs:
 Latching the counter into the OTR register
@@ -71,32 +71,33 @@ Mapping raw counts to detent counts (counter / 4)
 Raising CounterChanged when a new detent boundary is reached
 All SPI operations are synchronized using an internal lock.
 
-📑 API Overview
-Ls7366
-Start() / Stop()
-ReadCounter()
-ReadStatus()
-ResetCounter()
-LoadCounter(long value)
-ConfigureForEc11()
-CounterChanged event
-ChangedEventArgs
-Count — detent‑aligned count
-RawCount — raw LS7366R counter value
-Direction — Up / Down / Unknown
-Status — raw status register byte
+## 📑 API Overview
+- Ls7366
+- Start() / Stop()
+- ReadCounter()
+- ReadStatus()
+- ResetCounter()
+- LoadCounter(long value)
+- ConfigureForEc11()
+- CounterChanged event
+- ChangedEventArgs
+- Count — detent‑aligned count
+- RawCount — raw LS7366R counter value
+- Direction — Up / Down / Unknown
+- Status — raw status register byte
 
 Direction
-Up
-Down
-Unknown
+- Up
+- Down
+- Unknown
 
-🛠 Debugging
-csharp
+## 🛠 Debugging
+```csharp
 decoder.DumpRegisters();
-Outputs:
-MDR0
-MDR1
-CNTR
-OTR
-STR (with decoded bit flags)
+```
+### Outputs:
+- MDR0
+- MDR1
+- CNTR
+- OTR
+- STR (with decoded bit flags)
