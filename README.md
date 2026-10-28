@@ -101,3 +101,7 @@ decoder.DumpRegisters();
 - CNTR
 - OTR
 - STR (with decoded bit flags)
+
+## ❤️ TinyCLR OS
+
+Designed for modern embedded development using .NET and TinyCLR OS.
