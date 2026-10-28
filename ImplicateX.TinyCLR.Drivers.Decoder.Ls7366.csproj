@@ -11,7 +11,7 @@
     <ProjectGuid>{6898551B-EE98-4F02-B3E7-19407BC4E4DA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ImplicateX.TinyCLR.Drivers.Decoder.Ls7366</RootNamespace>
+    <RootNamespace>ImplicateX.TinyCLR.Drivers.Decoder</RootNamespace>
     <AssemblyName>ImplicateX.TinyCLR.Drivers.Decoder.Ls7366</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -41,7 +41,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ImplicateX.TinyCLR.Drivers.Decoder.Ls7366.nuspec" />
     <None Include="packages.config" />
     <None Include="README.md" />
   </ItemGroup>
