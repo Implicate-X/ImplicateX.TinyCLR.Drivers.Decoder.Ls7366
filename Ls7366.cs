@@ -50,7 +50,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 			/// <param name="status">The status register value associated with the reading.</param>
 			public ChangedEventArgs( long count, long rawCount, Direction direction, byte status ) : this( count, direction, status )
 			{
-				this.RawCount = rawCount;
+				RawCount = rawCount;
 			}
 
 			/// <summary>
@@ -195,32 +195,32 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// <summary>
 		/// The SPI device used to communicate with the LS7366.
 		/// </summary>
-		private SpiDevice spiDevice_;
+		private readonly SpiDevice spiDevice;
 
 		/// <summary>
 		/// The timer used to poll the decoder at a fixed interval.
 		/// </summary>
-		private Timer pollTimer_;
+		private Timer pollTimer = null!;
 
 		/// <summary>
 		/// The most recent raw counter value read from the device.
 		/// </summary>
-		private long lastCounter_;
+		private long lastCounter;
 
 		/// <summary>
 		/// The last detent-aligned count reported to subscribers.
 		/// </summary>
-		private long lastReportedCount_ = long.MinValue;
+		private long lastReportedCount = long.MinValue;
 
 		/// <summary>
 		/// Indicates whether the instance has been disposed.
 		/// </summary>
-		private bool disposed_;
+		private bool disposed;
 
 		/// <summary>
 		/// Occurs when the decoder count changes on a detent boundary.
 		/// </summary>
-		public event Action<ChangedEventArgs> CounterChanged;
+		public event Action<ChangedEventArgs> CounterChanged = null!;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Ls7366"/> class and configures the SPI-backed decoder interface.
@@ -244,11 +244,11 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 			spiProvider.SetActiveSettings( settings );
 
 			var spiController = SpiController.FromProvider( spiProvider );
-			this.spiDevice_ = spiController.GetDevice( settings );
+			spiDevice = spiController.GetDevice( settings );
 
-			this.ConfigureForEc11();
+			ConfigureForEc11();
 
-			this.lastCounter_ = this.ReadCounter();
+			lastCounter = ReadCounter();
 		}
 
 		/// <summary>
@@ -256,17 +256,17 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// </summary>
 		public void Start()
 		{
-			if( this.disposed_ )
+			if( disposed )
 			{
 				throw new ObjectDisposedException( nameof( Ls7366 ) );
 			}
 
-			if( this.pollTimer_ != null )
+			if( pollTimer != null )
 			{
 				return;
 			}
 
-			this.pollTimer_ = new Timer( this.PollDecoder, null, PollIntervalMs, PollIntervalMs );
+			pollTimer = new Timer( PollDecoder, null, PollIntervalMs, PollIntervalMs );
 		}
 
 		/// <summary>
@@ -274,8 +274,8 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// </summary>
 		public void Stop()
 		{
-			Timer timer = this.pollTimer_;
-			this.pollTimer_ = null;
+			Timer timer = pollTimer;
+			pollTimer = null!;
 			timer?.Dispose();
 		}
 
@@ -284,7 +284,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// </summary>
 		public void ConfigureForDecoder()
 		{
-			this.ConfigureForEc11();
+			ConfigureForEc11();
 		}
 
 		/// <summary>
@@ -314,15 +314,15 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// <param name="mdr1">The MDR1 register value to write.</param>
 		public void ConfigureForEc11( byte mdr0, byte mdr1 )
 		{
-			lock( this.syncRoot )
+			lock( syncRoot )
 			{
-				this.SendData( Command.WriteMdr0, mdr0 );
-				this.SendData( Command.WriteMdr1, mdr1 );
-				this.SendCommand( Command.ClearCntr );
-				this.SendCommand( Command.ClearStr );
+				SendData( Command.WriteMdr0, mdr0 );
+				SendData( Command.WriteMdr1, mdr1 );
+				SendCommand( Command.ClearCntr );
+				SendCommand( Command.ClearStr );
 
-				this.lastCounter_ = 0;
-				this.lastReportedCount_ = long.MinValue;
+				lastCounter = 0;
+				lastReportedCount = long.MinValue;
 			}
 		}
 
@@ -332,9 +332,9 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// <returns>The current counter value.</returns>
 		public long ReadCounter()
 		{
-			lock( this.syncRoot )
+			lock( syncRoot )
 			{
-				return this.ReceiveCounter();
+				return ReceiveCounter();
 			}
 		}
 
@@ -344,9 +344,9 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// <returns>The status register value.</returns>
 		public byte ReadStatus()
 		{
-			lock( this.syncRoot )
+			lock( syncRoot )
 			{
-				return this.ReceiveStatus();
+				return ReceiveStatus();
 			}
 		}
 
@@ -355,12 +355,12 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// </summary>
 		public void ResetCounter()
 		{
-			lock( this.syncRoot )
+			lock( syncRoot )
 			{
-				this.SendCommand( Command.ClearCntr );
-				this.SendCommand( Command.ClearStr );
-				this.lastCounter_ = 0;
-				this.lastReportedCount_ = long.MinValue;
+				SendCommand( Command.ClearCntr );
+				SendCommand( Command.ClearStr );
+				lastCounter = 0;
+				lastReportedCount = long.MinValue;
 			}
 		}
 
@@ -370,12 +370,12 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// <param name="value">The value to load into the counter.</param>
 		public void LoadCounter( long value )
 		{
-			lock( this.syncRoot )
+			lock( syncRoot )
 			{
-				this.SendData( Command.WriteDtr, value );
-				this.SendCommand( Command.LoadCntr );
-				this.lastCounter_ = value & this.counterMask;
-				this.lastReportedCount_ = long.MinValue;
+				SendData( Command.WriteDtr, value );
+				SendCommand( Command.LoadCntr );
+				lastCounter = value & counterMask;
+				lastReportedCount = long.MinValue;
 			}
 		}
 
@@ -384,14 +384,14 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// </summary>
 		public void Dispose()
 		{
-			if( this.disposed_ )
+			if( disposed )
 			{
 				return;
 			}
 
-			this.disposed_ = true;
-			this.Stop();
-			this.spiDevice_?.Dispose();
+			disposed = true;
+			Stop();
+			spiDevice?.Dispose();
 		}
 
 		/// <summary>
@@ -406,7 +406,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// </remarks>
 		private void PollDecoder( object state )
 		{
-			if( this.disposed_ )
+			if( disposed )
 			{
 				return;
 			}
@@ -414,19 +414,19 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 			long counter;
 			byte status;
 
-			lock( this.syncRoot )
+			lock( syncRoot )
 			{
-				counter = this.ReceiveCounter();
-				status = this.ReceiveStatus();
+				counter = ReceiveCounter();
+				status = ReceiveStatus();
 			}
 
-			if( counter == this.lastCounter_ )
+			if( counter == lastCounter )
 			{
 				return;
 			}
 
 			Direction direction = ( status & StatusDirectionBit ) != 0 ? Direction.Up : Direction.Down;
-			this.lastCounter_ = counter;
+			lastCounter = counter;
 
 			if( counter % DetentDivider != 0 )
 			{
@@ -434,14 +434,14 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 			}
 
 			long detentCount = counter / DetentDivider;
-			if( detentCount == this.lastReportedCount_ )
+			if( detentCount == lastReportedCount )
 			{
 				return;
 			}
 
-			this.lastReportedCount_ = detentCount;
+			lastReportedCount = detentCount;
 
-			Action<ChangedEventArgs> handler = this.CounterChanged;
+			Action<ChangedEventArgs> handler = CounterChanged;
 			handler?.Invoke( new ChangedEventArgs( detentCount, counter, direction, status ) );
 		}
 
@@ -454,8 +454,8 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// <returns>The current 32-bit counter value.</returns>
 		private long ReceiveCounter()
 		{
-			this.SendCommand( Command.LoadOtr );
-			return this.ReceiveData( Command.ReadOtr, CounterByteCount );
+			SendCommand( Command.LoadOtr );
+			return ReceiveData( Command.ReadOtr, CounterByteCount );
 		}
 
 		/// <summary>
@@ -468,7 +468,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 			byte[] readBuffer = new byte[ 2 ];
 			writeBuffer[ 0 ] = Command.ReadStr;
 
-			this.spiDevice_.TransferFullDuplex( writeBuffer, readBuffer );
+			spiDevice.TransferFullDuplex( writeBuffer, readBuffer );
 
 			return readBuffer[ 1 ];
 		}
@@ -480,7 +480,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// <returns>The register value.</returns>
 		private byte ReceiveData( byte command )
 		{
-			return ( byte )this.ReceiveData( command, 1 );
+			return ( byte )ReceiveData( command, 1 );
 		}
 
 		/// <summary>
@@ -493,7 +493,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 			byte[] readBuffer = new byte[ 1 ];
 			writeBuffer[ 0 ] = command;
 
-			this.spiDevice_.TransferFullDuplex( writeBuffer, readBuffer );
+			spiDevice.TransferFullDuplex( writeBuffer, readBuffer );
 		}
 
 		/// <summary>
@@ -508,7 +508,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 			writeBuffer[ 0 ] = command;
 			writeBuffer[ 1 ] = value;
 
-			this.spiDevice_.TransferFullDuplex( writeBuffer, readBuffer );
+			spiDevice.TransferFullDuplex( writeBuffer, readBuffer );
 		}
 
 		/// <summary>
@@ -528,7 +528,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 				value >>= 8;
 			}
 
-			this.spiDevice_.TransferFullDuplex( writeBuffer, readBuffer );
+			spiDevice.TransferFullDuplex( writeBuffer, readBuffer );
 		}
 
 		/// <summary>
@@ -543,7 +543,7 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 			byte[] readBuffer = new byte[ 1 + dataByteCount ];
 			writeBuffer[ 0 ] = command;
 
-			this.spiDevice_.TransferFullDuplex( writeBuffer, readBuffer );
+			spiDevice.TransferFullDuplex( writeBuffer, readBuffer );
 
 			uint value = 0;
 
@@ -560,21 +560,21 @@ namespace ImplicateX.TinyCLR.Drivers.Decoder
 		/// </summary>
 		public void DumpRegisters()
 		{
-			lock( this.syncRoot )
+			lock( syncRoot )
 			{
-				byte mdr0 = this.ReceiveData( Command.ReadMdr0 );
-				byte mdr1 = this.ReceiveData( Command.ReadMdr1 );
-				uint cntr = this.ReceiveData( Command.ReadCntr, CounterByteCount );
+				byte mdr0 = ReceiveData( Command.ReadMdr0 );
+				byte mdr1 = ReceiveData( Command.ReadMdr1 );
+				uint cntr = ReceiveData( Command.ReadCntr, CounterByteCount );
 
-				this.SendCommand( Command.LoadOtr );
-				uint otr = this.ReceiveData( Command.ReadOtr, CounterByteCount );
-				byte str = this.ReceiveStatus();
+				SendCommand( Command.LoadOtr );
+				uint otr = ReceiveData( Command.ReadOtr, CounterByteCount );
+				byte str = ReceiveStatus();
 
 				Debug.WriteLine(
 					$"LS7366R MDR0=0x{mdr0:X2}, " +
 					$"MDR1=0x{mdr1:X2}, " +
 					$"CNTR=0x{cntr:X8}, OTR=0x{otr:X8}, " +
-					$"STR=0x{str:X2} [{this.DescribeStatusBits( str )}]" );
+					$"STR=0x{str:X2} [{DescribeStatusBits( str )}]" );
 			}
 		}
 
