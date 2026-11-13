@@ -10,8 +10,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E65CE240-C284-4D34-B83A-B1CA2BEDF2B0}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Ls7366App</RootNamespace>
-    <AssemblyName>Ls7366App</AssemblyName>
+    <RootNamespace>ImplicateX.TinyCLR.Drivers.Decoder</RootNamespace>
+    <AssemblyName>ImplicateX.TinyCLR.Drivers.Decoder.Ls7366.App</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
