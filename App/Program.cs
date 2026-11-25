@@ -14,15 +14,15 @@ internal class Program
 		public const int DecoderCS = FEZFeather.GpioPin.PC11;
 	}
 
-	private static GpioController gpioController_;
-	private static Ls7366 quadDecoder_;
+	private static GpioController gpioController = null!;
+	private static Ls7366 quadDecoder_ = null!;
 
 	static void Main()
 	{
-		gpioController_ = GpioController.GetDefault();
+		gpioController = GpioController.GetDefault();
 
 		quadDecoder_ = new(
-			gpioController_,
+			gpioController,
 			ControllerPin.DecoderCS,
 			ControllerPin.DecoderSCLK,
 			ControllerPin.DecoderMOSI,
